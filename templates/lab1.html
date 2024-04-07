@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <script>
+    var redirectVisited = sessionStorage.getItem('redirectVisited');
+    if (redirectVisited === 'true') {
+      // Disable the button/link that allows navigation to the voting page
+      document.getElementById("submitVotesButton").disabled = true;
+    }
+  </script>
+  <body>
+    <div class="thanks voting-wrapper">
+      <div class="div">
+        <div class="div-2">
+          <div class="votesubmit">
+            <a href="/redirect_page">
+              <button onclick="submitVotes()" id="submitVotesButton" disabled>SubmitVotes  </button>
+           </a>
+          </div>
+          <img class="line-2" src="{{ url_for('static', filename='images/line-1-5.png') }}" />
+          <img class="line-3" src="{{ url_for('static', filename='images/line-2-5.png') }}" />
+        </div>
+        <div class="overlap-7">
+          <div class="overlap-6">
+            <div class="group-3">
+              <img class="line-2" src="{{ url_for('static', filename='images/line-1-5.png') }}" /> 
+              <img class="line-3" src="{{ url_for('static', filename='images/line-2-5.png') }}" />
+            </div>
+            <img class="image" src="{{ url_for('static', filename='images/gu.png') }}" />
+            <img class="techxtreme" src="{{ url_for('static', filename='images/techxtreme.png') }}" />
+          </div>
+          <div class="text-wrapper-23">Voting Area</div>
+          <p style="text-align: center; color: white; margin-top: 59px; font-size: small; ">Please select 3 images!</p>
+        </div>
+        <div class="overlap-8">
+          <div class="group-4">  
+            <div class="my_scroll_div1">
+              <div class="imageforvote">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {% for user in users %}
+                  <div class="p-4 rounded-lg flex flex-col items-center">
+                    <div class="mb-2">{{ user.id }}</div>
+                    <img
+                      src="{{ user.image_url }}"
+                      alt="User Image"
+                      class="h-auto max-w-full rounded-lg mb-2"
+                      style="max-width: 300px"
+                    />
+                    <div class="mb-2 text-lg text-white dark:text-white">{{ user.prompt_text }}</div>
+                    <label for="checkbox{{ user.id }}"></label>
+                    <input
+                    class="w-5 h-5"
+                      type="checkbox"
+                      id="checkbox{{ user.id }}"
+                      name="vote[]"
+                      value="{{ user.image_url }}"
+                      onchange="handleCheckboxChange()"
+                    />
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+    </div>
+
+    <script>
+      var selectedCheckboxes = [];
+
+      function handleCheckboxChange() {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        selectedCheckboxes = Array.from(checkboxes).filter(
+          (checkbox) => checkbox.checked
+        );
+        if (selectedCheckboxes.length >= 3) {
+          disableUnselectedCheckboxes();
+          document.getElementById("submitVotesButton").disabled = false;
+        } else {
+          enableAllCheckboxes();
+          document.getElementById("submitVotesButton").disabled = true;
+        }
+      }
+
+      function disableUnselectedCheckboxes() {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((checkbox) => {
+          if (!checkbox.checked) {
+            checkbox.disabled = true;
+          }
+        });
+      }
+
+      function enableAllCheckboxes() {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((checkbox) => {
+          checkbox.disabled = false;
+        });
+      }
+
+      function submitVotes() {
+        var voteIds = selectedCheckboxes.map((checkbox) => checkbox.value);
+        if (voteIds.length === 3) {
+          fetch("/submit_votes", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ votes: voteIds }),
+          })
+            .then((response) => {
+              if (response.ok) {
+                alert("Votes submitted successfully!");
+                // You may choose to reload the page or perform other actions here
+              } else {
+                throw new Error("Failed to submit votes");
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              alert("Failed to submit votes. Please try again.");
+            });
+        } else {
+          alert("Please select exactly 3 images to vote.");
+        }
+      }
+    </script>
+  </body>
+</html>

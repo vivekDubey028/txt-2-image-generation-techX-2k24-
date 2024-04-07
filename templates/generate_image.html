@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Generation System</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/globals.css') }}?v=2"> -->
+
+  </head>
+  <body>
+<div class="thanks main-wrapper">
+      <div class="div">
+        <div class="overlap-9">
+          <img
+            class="ai"
+            src="{{ url_for('static', filename='images/ai.png') }}"
+          />
+          <div class="gallery">
+            <div class="rectangle">
+              <div class="my_scroll_div">
+                <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+                  {% for user in users %}
+                  <div class=" p-4 rounded-lg">
+                    <div class="flex items-center mb-2">
+                      <div>{{ user.id }}</div>
+                    </div>
+                    <img
+                      class="h-auto max-w-full rounded-lg mb-2 cursor-pointer"
+                      src="{{ user.image_url }}"
+                      alt="User Image"
+                      style="max-width: 300px"
+                    />
+                    <div>
+                      <input
+                        type="radio"
+                        id="isFinalSubmission_{{ user.id }}"
+                        name="isFinalSubmission"
+                        class="image-selection"
+                        value="{{ user.image_url }}"
+                         onclick="displayBigImage('{{ user.image_url }}')"
+                        />
+                        <label for="isFinalSubmission" style="color: white;">Select Image</label>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                </div>
+                <div class="rectangle-3"></div>
+                <div class="rectangle-2">
+                  
+                
+              </div>
+              </div>
+            </div>
+        </div>
+        <!-- image selection end -->
+          <div class="submitbtn">
+                <form
+        id="submitForm"
+        method="post"
+        action="/submit_image"
+      >
+        <input type="hidden" id="selectedImageUrl" name="selectedImageUrl" />
+        
+        <button class="button" value="submit">Submit</button>
+
+            
+            
+          </div>
+        </div>
+        <div class="dropdown-menu">
+          <div class="dropdown-menu1">
+            <select id="width" name="width" class="simple">
+              <option value="512"></option>
+              <option value="512"></option>
+            </select>
+            <select id="height" name="height">
+              <option value="512"></option>
+            </select>
+          </div>
+          <div class="dropdown-menu2">
+            <select class="simple" id="providers" name="providers">
+                <option value="sdxl">SDXL</option>
+                <option value="midjourney">Mid Journey</option>
+                <option value="juggernaut-xl-v8">Juggernaut</option>
+                <option value="epicrealism-v3-updat">Epicrealism</option>
+            </select>
+          </div>
+          <!-- <div class="dropdown-menu3">
+            <select class="simple">
+              <option>option3</option>
+              <option>option4</option>
+            </select>
+          </div> -->
+        </div>
+        <div class="overlap-11">
+          <div class="prompt-menu">
+            <div class="overlap-group-3">
+              <div class="textarea">
+              <textarea
+                type="text"
+                id="prompt"
+                name="prompt"
+                placeholder="Input Prompt"
+                autocomplete="off"
+              ></textarea>
+              </div>
+            </div>
+            <div class="overlap-12">
+              <div class="textarea-2">
+              <textarea
+                type="text"
+                id="negative_prompt"
+                placeholder="Negative Prompt"
+                name="negative_prompt"
+                autocomplete="off"
+              ></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="generate-button">
+            <div class="overlap-13">
+              <button class="generate-button"
+              onclick="generateImages()"
+          id="generateButton"
+          
+              >Generate </button>
+            </div>
+          </div>
+        </div>
+        <div class="div-2">
+          <img
+            class="line-2"
+            src="{{ url_for('static', filename='images/line-1-5.png') }}"
+          />
+          <img
+            class="line-3"
+            src="{{ url_for('static', filename='images/line-2-5.png') }}"
+          />
+        </div>
+        <div class="overlap-14">
+          <div class="overlap-6">
+            <div class="top-line">
+              <img
+                class="line-2"
+                src="{{ url_for('static', filename='images//line-1-5.png') }}"
+              />
+              <img
+                class="line-3"
+                src="{{ url_for('static', filename='images/line-2-5.png') }}"
+              />
+            </div>
+            <img
+              class="techxtreme"
+              src="{{ url_for('static', filename='images/techxtreme.png') }}"
+            />
+            <img
+              class="gu"
+              src="{{ url_for('static', filename='images/gu.png') }}"
+            />
+          </div>
+          <div class="text-wrapper-28">Prompt Engineering</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+function displayBigImage(imageUrl) {
+    // Create a new image element
+    var bigImage = document.createElement("img");
+    bigImage.src = imageUrl;
+    bigImage.alt = "Big Image";
+
+    // Clear the content of the rectangle-2 div and append the big image
+    var rectangle2 = document.querySelector(".rectangle-2");
+    rectangle2.innerHTML = "";
+    rectangle2.appendChild(bigImage);
+}
+
+        document.getElementById("width").addEventListener("change", function () {
+        var widthValue = this.value;
+        var height = document.getElementById("height");
+
+        // Reset height
+        height.selectedIndex = 0;
+
+        // Set the corresponding option in height
+        height.value = widthValue;
+      });
+
+      // Function to disable the generate button and show loading spinner
+      function disableGenerateButton() {
+        const button = document.getElementById("generateButton");
+        button.disabled = true;
+        button.innerHTML = `<span class="loader"></span> Generating...`;
+      }
+
+      // Function to enable the generate button and reset its text
+      function enableGenerateButton() {
+        const button = document.getElementById("generateButton");
+        button.disabled = false;
+        button.innerHTML = "Generate Images";
+        location.reload(); // this is function to reload the page after the image is generated to display the past image
+      }
+
+      // Async function to call API
+      async function generateImages() {
+        // Disable the button and show loading spinner
+        disableGenerateButton();
+
+        const prompt = document.getElementById("prompt").value;
+        const width = document.getElementById("width").value;
+        const height = document.getElementById("height").value;
+        const providers = document.getElementById("providers").value;
+        const negative_prompt = document.getElementById("negative_prompt").value;
+
+        const requestData = {
+          prompt: prompt,
+          width: width,
+          height: height,
+          providers: providers,
+          negative_prompt: negative_prompt,
+          safety_checker: true,
+        };
+
+        try {
+          const response = await fetch("/generate_image", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestData),
+          });
+
+          const responseData = await response.json();
+
+          if (response.ok) {
+            // Clear previous images
+            const imageContainer = document.getElementById("imageContainer");
+            imageContainer.innerHTML = "";
+
+            // Check if output is available in the response
+            if (responseData.image_url) {
+              // Create img element and set its attributes
+              const imageUrl = responseData.image_url;
+              console.log("Image URL:", imageUrl); // Debug statement
+              const imgElement = document.createElement("img");
+              imgElement.src = imageUrl;
+              imgElement.style.width = "512px";
+              imgElement.style.height = "512px";
+              imgElement.style.marginRight = "10px";
+              imgElement.style.marginBottom = "10px";
+              // Append img element to the container
+              imageContainer.appendChild(imgElement);
+            } else {
+              // Handle case where no image URL is returned
+              console.log("No image URL returned"); // Debug statement
+              alert("No image URL returned.");
+            }
+          } else {
+            // Handle non-success response
+            alert("Error: " + responseData.message);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        } finally {
+          // Enable the button again after response is received
+          enableGenerateButton();
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const imageSelections = document.querySelectorAll(".image-selection"); // Get all radio inputs with class 'image-selection'
+        const submitForm = document.getElementById("submitForm"); // Get the submit form
+
+        imageSelections.forEach(function (selection) {
+          selection.addEventListener("change", function () {
+            const selectedImageUrl = this.value; // Get the value of the selected image URL
+            document.getElementById("selectedImageUrl").value =
+              selectedImageUrl; // Set the value of the hidden input field to the selected image URL
+          });
+        });
+
+        submitForm.addEventListener("submit", function (event) {
+          event.preventDefault(); // Prevent the default form submission
+
+          const selectedImageUrl =
+            document.getElementById("selectedImageUrl").value; // Get the selected image URL
+          if (selectedImageUrl) {
+            // If an image is selected, submit the form
+            this.submit();
+          } else {
+            // If no image is selected, display an alert
+            alert("Please select an image to submit.");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
